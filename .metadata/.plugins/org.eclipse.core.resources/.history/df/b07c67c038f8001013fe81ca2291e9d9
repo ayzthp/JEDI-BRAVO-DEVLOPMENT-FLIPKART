@@ -17,7 +17,6 @@ public class Booking {
 	}
 	public GymSlot getGymSlot() {
 		return gymSlot;
-		
 	}
 	public void setGymSlot(GymSlot gymSlot) {
 		this.gymSlot = gymSlot;
