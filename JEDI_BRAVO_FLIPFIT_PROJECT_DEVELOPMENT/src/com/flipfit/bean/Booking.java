@@ -1,4 +1,5 @@
 package com.flipfit.bean;
+//added a commment
 
 import com.flipfit.enums.BookingStatus;
 
