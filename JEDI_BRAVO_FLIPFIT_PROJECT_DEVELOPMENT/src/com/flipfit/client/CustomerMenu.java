@@ -13,6 +13,7 @@ import com.flipfit.bean.GymSlot;
 import com.flipfit.bean.GymUser;
 import com.flipfit.business.CustomerService;
 import com.flipfit.helper.DataStore;
+import com.flipfit.validation.DateValidation;
 
 public class CustomerMenu {
 
@@ -83,11 +84,20 @@ public class CustomerMenu {
 	}
 
 	private void bookSlot(Scanner scanner) {
+		
 		System.out.print("Enter center id: ");
 		String centerId = scanner.next();
-		System.out.print("Enter date (yyyy-MM-dd): ");
-		String dateInput = scanner.next();
-
+		
+		boolean validate= true;
+		String dateInput;
+		do {
+			if(!validate) System.out.println("Date validation failed. Try again");
+			System.out.print("Enter date (yyyy-MM-dd): ");
+			dateInput= scanner.next();
+			DateValidation.validateDate(dateInput);
+		
+		}while(!validate);
+		
 		try {
 			Date date = new SimpleDateFormat("yyyy-MM-dd").parse(dateInput);
 			System.out.println("Available slots for center " + centerId + " on " + dateInput + ":");

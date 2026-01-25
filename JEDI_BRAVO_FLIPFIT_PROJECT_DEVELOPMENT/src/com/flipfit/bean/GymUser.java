@@ -1,6 +1,7 @@
 package com.flipfit.bean;
 
 import com.flipfit.enums.Role;
+import com.flipfit.helper.DataStore;
 
 public class GymUser {
 	private String userId;
@@ -14,6 +15,7 @@ public class GymUser {
 		return userId;
 	}
 	public void setUserId(String userId) {
+		
 		this.userId = userId;
 	}
 	public String getName() {
@@ -26,6 +28,7 @@ public class GymUser {
 		return email;
 	}
 	public void setEmail(String email) {
+		DataStore.addNewEmail(email);
 		this.email = email;
 	}
 	public String getAddress() {

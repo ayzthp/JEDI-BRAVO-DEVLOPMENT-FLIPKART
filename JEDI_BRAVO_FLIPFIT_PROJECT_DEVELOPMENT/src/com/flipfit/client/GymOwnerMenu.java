@@ -75,8 +75,10 @@ public class GymOwnerMenu {
 	}
 
 	private void addGym(Scanner scanner) {
+		
 		System.out.print("Enter center location: ");
 		String loc = scanner.next();
+		
 		System.out.print("Enter city: ");
 		String city = scanner.next();
 

@@ -5,8 +5,10 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.flipfit.bean.GymCenter;
@@ -32,10 +34,20 @@ public final class DataStore {
 	private static final AtomicInteger BOOKING_SEQ = new AtomicInteger(300);
 	private static final AtomicInteger USER_SEQ = new AtomicInteger(400);
 
+	private static final Set<String> emails = new HashSet<>();
+	
 	static {
 		seedUsers();
 		seedCenters();
 	}
+
+	public static Set<String> getAllEmails() {
+		return emails;
+	}
+	public static void addNewEmail(String email) {
+		 emails.add(email);
+	}
+	
 
 	private DataStore() {
 	}
@@ -46,6 +58,7 @@ public final class DataStore {
 		admin.setUserId("admin");
 		admin.setName("Platform Admin");
 		admin.setEmail("admin@flipfit.com");
+		
 		admin.setPassword("admin");
 		admin.setRole(Role.ADMIN);
 		USERS.put(admin.getUserId(), admin);
@@ -64,6 +77,7 @@ public final class DataStore {
 		customer.setEmail("cust1@flipfit.com");
 		customer.setPassword("password");
 		customer.setRole(Role.CUSTOMER);
+		
 		USERS.put(customer.getUserId(), customer);
 	}
 

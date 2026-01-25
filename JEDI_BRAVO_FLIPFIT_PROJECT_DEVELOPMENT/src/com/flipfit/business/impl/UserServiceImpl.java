@@ -4,6 +4,7 @@ import com.flipfit.bean.GymUser;
 import com.flipfit.business.UserService;
 import com.flipfit.enums.Role;
 import com.flipfit.helper.DataStore;
+import com.flipfit.validation.EmailValidation;
 
 public class UserServiceImpl implements UserService {
 
@@ -38,4 +39,4 @@ public class UserServiceImpl implements UserService {
 		return true;
 	}
 }
-
+// 
