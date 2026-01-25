@@ -14,6 +14,8 @@ import com.flipfit.business.impl.CustomerServiceImpl;
 import com.flipfit.business.impl.GymOwnerServiceImpl;
 import com.flipfit.business.impl.UserServiceImpl;
 import com.flipfit.enums.Role;
+import com.flipfit.helper.DataStore;
+import com.flipfit.validation.EmailValidation;
 
 public class Main {
 
@@ -23,6 +25,8 @@ public class Main {
 	private static final GymOwnerService gymOwnerService = new GymOwnerServiceImpl();
 	private static final AdminService adminService = new AdminServiceImpl();
 
+	static boolean validate= false;
+	
     public static void main(String[] args) {
         System.out.println("Welcome to Flipfit Application!");
 
@@ -120,12 +124,23 @@ public class Main {
     }
 
 	private static void registerCustomer(Scanner scanner) {
+		
 		System.out.print("Enter name: ");
 		String name = scanner.next();
-		System.out.print("Enter email: ");
-		String email = scanner.next();
+
+		String email;
+		validate = true;
+		do {
+			if(!validate) System.out.println("Email Validation Failed. Try again..");
+			System.out.print("Enter email(Ends with \" @gmail.com \" ): ");
+			email = scanner.next();
+			validate = EmailValidation.validateEmail(email);
+			validate &= EmailValidation.checkUnique(DataStore.getAllEmails(), email);
+		} while (!validate );
+		
 		System.out.print("Choose password: ");
 		String password = scanner.next();
+		
 		GymUser user = userService.register(name, email, password, Role.CUSTOMER);
 		System.out.println("Registered Customer with user id: " + user.getUserId());
 	}
@@ -133,10 +148,20 @@ public class Main {
 	private static void registerOwner(Scanner scanner) {
 		System.out.print("Enter name: ");
 		String name = scanner.next();
-		System.out.print("Enter email: ");
-		String email = scanner.next();
+		
+		String email;
+		validate = true;
+		do {
+			if(!validate) System.out.println("Email Validation Failed. Try again..");
+			System.out.print("Enter email(Ends with \" @gmail.com \" ): ");
+			email = scanner.next();
+			validate = EmailValidation.validateEmail(email);
+			validate &= EmailValidation.checkUnique(DataStore.getAllEmails(), email);
+		} while (!validate );
+		
 		System.out.print("Choose password: ");
 		String password = scanner.next();
+		
 		GymUser user = userService.register(name, email, password, Role.GYM_OWNER);
 		System.out.println("Registered Gym Owner with user id: " + user.getUserId());
 	}

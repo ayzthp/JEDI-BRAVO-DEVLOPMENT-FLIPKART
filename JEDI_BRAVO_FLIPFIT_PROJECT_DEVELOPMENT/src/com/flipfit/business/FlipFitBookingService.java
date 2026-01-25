@@ -13,6 +13,8 @@ import com.flipfit.bean.GymUser;
 import com.flipfit.enums.BookingStatus;
 import com.flipfit.dao.BookingDAO;
 import com.flipfit.dao.GymCentreDAO;
+import com.flipfit.dao.GymCentreDAOImpl;
+
 import java.util.Date;
 import java.time.LocalTime;
 import java.util.UUID;
