@@ -1,5 +1,8 @@
 package com.flipfit.dao;
 
+import com.flipfit.bean.Booking;
+import com.flipfit.bean.GymCenter;
+import com.flipfit.bean.GymSlot;
 import com.flipfit.bean.GymUser;
 import java.util.List;
 import java.util.Date;
@@ -9,7 +12,25 @@ import java.util.Date;
  * Defines CRUD operations for Customer management
  */
 public interface GymCustomerDAO {
-    
+
+    List<GymCenter> fetchGymCentersByCity(String city);
+
+    // Use Case 2 & 4: Slot Operations
+    GymSlot getSlotDetails(String slotId);
+    boolean decrementSlotSeats(String slotId); // Returns false if full
+    boolean incrementSlotSeats(String slotId);
+
+    // Use Case 2: Booking
+    boolean insertBooking(Booking booking);
+
+    // Use Case 3: Conflict Check
+    String findConflictingBookingId(String userId, String date, String startTime);
+
+    // Use Case 5: Cancellation
+    boolean updateBookingStatus(String bookingId, String status);
+
+    // Use Case 2 (Suggestion): Get all slots
+    List<GymSlot> getSlotsByGymId(String gymId);
     /**
      * Insert a new gym customer into the database
      * @param customerId Customer ID

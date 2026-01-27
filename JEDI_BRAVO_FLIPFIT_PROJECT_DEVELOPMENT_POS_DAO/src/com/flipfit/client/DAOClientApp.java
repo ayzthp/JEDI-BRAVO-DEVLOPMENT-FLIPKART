@@ -1,14 +1,15 @@
 package com.flipfit.client;
 
+import com.flipfit.bean.GymCenter;
 import com.flipfit.bean.GymUser;
-import com.flipfit.dao.GymUserDAO;
-import com.flipfit.dao.GymOwnerDAO;
-import com.flipfit.dao.GymCustomerDAO;
-import com.flipfit.dao.GymAdminDAO;
-import com.flipfit.dao.impl.GymUserDAOImpl;
-import com.flipfit.dao.impl.GymOwnerDAOImpl;
-import com.flipfit.dao.impl.GymCustomerDAOImpl;
-import com.flipfit.dao.impl.GymAdminDAOImpl;
+import com.flipfit.business.AdminService;
+import com.flipfit.business.CustomerService;
+import com.flipfit.business.GymOwnerService;
+import com.flipfit.business.UserService;
+import com.flipfit.business.impl.AdminServiceImpl;
+import com.flipfit.business.impl.CustomerServiceImpl;
+import com.flipfit.business.impl.GymOwnerServiceImpl;
+import com.flipfit.business.impl.UserServiceImpl;
 import com.flipfit.enums.Role;
 
 import java.util.List;
@@ -16,26 +17,27 @@ import java.util.Map;
 import java.util.Scanner;
 
 /**
- * Client application demonstrating DAO operations
- * This class shows how to use the DAO interfaces to perform CRUD operations
+ * Client application demonstrating FlipFit functionalities.
+ * Connects UI (Console) to the Service Layer.
  */
 public class DAOClientApp {
-    
-    private static GymUserDAO userDAO = new GymUserDAOImpl();
-    private static GymOwnerDAO ownerDAO = new GymOwnerDAOImpl();
-    private static GymCustomerDAO customerDAO = new GymCustomerDAOImpl();
-    private static GymAdminDAO adminDAO = new GymAdminDAOImpl();
+
+    // Replace Direct DAOs with Service Implementations
+    private static UserService userService = new UserServiceImpl();
+    private static CustomerService customerService = new CustomerServiceImpl();
+    private static GymOwnerService gymOwnerService = new GymOwnerServiceImpl();
+    private static AdminService adminService = new AdminServiceImpl();
+
     private static Scanner scanner = new Scanner(System.in);
-    
     private static GymUser currentUser = null;
-    
+
     public static void main(String[] args) {
         System.out.println("===========================================");
         System.out.println("    Welcome to FlipFit Application");
         System.out.println("===========================================\n");
-        
+
         boolean running = true;
-        
+
         while (running) {
             System.out.println("\n========== MAIN MENU ==========");
             System.out.println("1. Customer Login");
@@ -45,19 +47,19 @@ public class DAOClientApp {
             System.out.println("5. Exit");
             System.out.println("================================");
             System.out.print("Enter your choice: ");
-            
+
             int choice = scanner.nextInt();
             scanner.nextLine(); // Consume newline
-            
+
             switch (choice) {
                 case 1:
-                    customerLogin();
+                    login(Role.CUSTOMER);
                     break;
                 case 2:
-                    gymOwnerLogin();
+                    login(Role.GYM_OWNER);
                     break;
                 case 3:
-                    adminLogin();
+                    login(Role.ADMIN);
                     break;
                 case 4:
                     registerUser();
@@ -70,154 +72,76 @@ public class DAOClientApp {
                     System.out.println("✗ Invalid choice!");
             }
         }
-        
+
         scanner.close();
     }
-    
+
     /**
-     * Customer login
+     * Generic Login Method for all roles
      */
-    private static void customerLogin() {
-        System.out.println("\n========== CUSTOMER LOGIN ==========");
+    private static void login(Role role) {
+        System.out.println("\n========== " + role + " LOGIN ==========");
         System.out.print("Enter Email: ");
         String email = scanner.nextLine();
-        
+
         System.out.print("Enter Password: ");
         String password = scanner.nextLine();
-        
-        currentUser = userDAO.authenticateUser(email, password);
-        
-        if (currentUser != null && currentUser.getRole() == Role.CUSTOMER) {
+
+        // Use UserService to login
+        currentUser = userService.login(email, password, role);
+
+        if (currentUser != null) {
             System.out.println("✓ Login successful! Welcome " + currentUser.getName());
-            customerMenu();
+
+            // Route to specific menu based on Role
+            switch (role) {
+                case CUSTOMER:
+                    customerMenu();
+                    break;
+                case GYM_OWNER:
+                    gymOwnerMenu();
+                    break;
+                case ADMIN:
+                    adminMenu();
+                    break;
+            }
         } else {
-            System.out.println("✗ Invalid credentials or not a customer account!");
+            System.out.println("✗ Invalid credentials or role mismatch!");
         }
-        currentUser = null;
+        currentUser = null; // Logout after session ends
     }
-    
+
     /**
-     * Gym Owner login
-     */
-    private static void gymOwnerLogin() {
-        System.out.println("\n========== GYM OWNER LOGIN ==========");
-        System.out.print("Enter Email: ");
-        String email = scanner.nextLine();
-        
-        System.out.print("Enter Password: ");
-        String password = scanner.nextLine();
-        
-        currentUser = userDAO.authenticateUser(email, password);
-        
-        if (currentUser != null && currentUser.getRole() == Role.GYM_OWNER) {
-            System.out.println("✓ Login successful! Welcome " + currentUser.getName());
-            gymOwnerMenu();
-        } else {
-            System.out.println("✗ Invalid credentials or not a gym owner account!");
-        }
-        currentUser = null;
-    }
-    
-    /**
-     * Admin login
-     */
-    private static void adminLogin() {
-        System.out.println("\n========== ADMIN LOGIN ==========");
-        System.out.print("Enter Email: ");
-        String email = scanner.nextLine();
-        
-        System.out.print("Enter Password: ");
-        String password = scanner.nextLine();
-        
-        currentUser = userDAO.authenticateUser(email, password);
-        
-        if (currentUser != null && currentUser.getRole() == Role.ADMIN) {
-            System.out.println("✓ Login successful! Welcome Admin " + currentUser.getName());
-            adminMenu();
-        } else {
-            System.out.println("✗ Invalid credentials or not an admin account!");
-        }
-        currentUser = null;
-    }
-    
-    /**
-     * Register new user
-     */
-    private static void registerUser() {
-        System.out.println("\n========== USER REGISTRATION ==========");
-        
-        System.out.print("Enter Name: ");
-        String name = scanner.nextLine();
-        
-        System.out.print("Enter Email: ");
-        String email = scanner.nextLine();
-        
-        System.out.print("Enter Password: ");
-        String password = scanner.nextLine();
-        
-        System.out.print("Enter Address: ");
-        String address = scanner.nextLine();
-        
-        System.out.println("\nSelect Role:");
-        System.out.println("1. Customer");
-        System.out.println("2. Gym Owner");
-        System.out.print("Enter choice: ");
-        int roleChoice = scanner.nextInt();
-        scanner.nextLine();
-        
-        Role role = (roleChoice == 2) ? Role.GYM_OWNER : Role.CUSTOMER;
-        
-        // Generate user ID
-        String userId = "USR" + System.currentTimeMillis();
-        
-        GymUser user = new GymUser();
-        user.setUserId(userId);
-        user.setName(name);
-        user.setEmail(email);
-        user.setPassword(password);
-        user.setAddress(address);
-        user.setRole(role);
-        
-        boolean result = userDAO.insertUser(user);
-        
-        if (result) {
-            System.out.println("✓ Registration successful! You can now login.");
-        } else {
-            System.out.println("✗ Registration failed!");
-        }
-    }
-    
-    /**
-     * Customer menu after login
+     * Customer Menu - Updated with Booking Options
      */
     private static void customerMenu() {
         boolean loggedIn = true;
-        
+
         while (loggedIn) {
             System.out.println("\n========== CUSTOMER MENU ==========");
             System.out.println("1. View Profile");
-            System.out.println("2. Update Profile");
-            System.out.println("3. View All Gym Centers");
-            System.out.println("4. View My Bookings");
+            System.out.println("2. View Gyms (All or by City)");
+            System.out.println("3. Book a Slot");
+            System.out.println("4. Cancel Booking");
             System.out.println("5. Logout");
             System.out.println("===================================");
             System.out.print("Enter your choice: ");
-            
+
             int choice = scanner.nextInt();
             scanner.nextLine();
-            
+
             switch (choice) {
                 case 1:
                     displayUser(currentUser);
                     break;
                 case 2:
-                    updateProfile();
+                    handleViewGyms();
                     break;
                 case 3:
-                    viewAllGymCenters();
+                    handleBooking();
                     break;
                 case 4:
-                    System.out.println("My Bookings feature - Coming soon!");
+                    handleCancellation();
                     break;
                 case 5:
                     loggedIn = false;
@@ -228,44 +152,32 @@ public class DAOClientApp {
             }
         }
     }
-    
+
     /**
-     * Gym Owner menu after login
+     * Gym Owner Menu - Updated with Add Gym Option
      */
     private static void gymOwnerMenu() {
         boolean loggedIn = true;
-        
+
         while (loggedIn) {
             System.out.println("\n========== GYM OWNER MENU ==========");
             System.out.println("1. View Profile");
             System.out.println("2. Add Gym Center");
-            System.out.println("3. View My Gym Centers");
-            System.out.println("4. Add Gym Slots");
-            System.out.println("5. View Approval Status");
-            System.out.println("6. Logout");
+            System.out.println("3. Logout");
             System.out.println("====================================");
             System.out.print("Enter your choice: ");
-            
+
             int choice = scanner.nextInt();
             scanner.nextLine();
-            
+
             switch (choice) {
                 case 1:
                     displayUser(currentUser);
                     break;
                 case 2:
-                    System.out.println("Add Gym Center feature - Coming soon!");
+                    handleAddGymCenter();
                     break;
                 case 3:
-                    System.out.println("My Gym Centers feature - Coming soon!");
-                    break;
-                case 4:
-                    System.out.println("Add Gym Slots feature - Coming soon!");
-                    break;
-                case 5:
-                    System.out.println("Approval Status feature - Coming soon!");
-                    break;
-                case 6:
                     loggedIn = false;
                     System.out.println("✓ Logged out successfully!");
                     break;
@@ -274,44 +186,36 @@ public class DAOClientApp {
             }
         }
     }
-    
+
     /**
-     * Admin menu after login
+     * Admin Menu - Updated with Approval Logic
      */
     private static void adminMenu() {
         boolean loggedIn = true;
-        
+
         while (loggedIn) {
             System.out.println("\n========== ADMIN MENU ==========");
-            System.out.println("1. View System Statistics");
-            System.out.println("2. View All Users");
+            System.out.println("1. View Statistics");
+            System.out.println("2. Approve Gym Centers");
             System.out.println("3. Approve Gym Owners");
-            System.out.println("4. Approve Gym Centers");
-            System.out.println("5. View All Gym Centers");
-            System.out.println("6. Logout");
+            System.out.println("4. Logout");
             System.out.println("================================");
             System.out.print("Enter your choice: ");
-            
+
             int choice = scanner.nextInt();
             scanner.nextLine();
-            
+
             switch (choice) {
                 case 1:
                     viewSystemStatistics();
                     break;
                 case 2:
-                    viewAllUsers();
+                    handleApproveGymCenters();
                     break;
                 case 3:
-                    approveGymOwnerMenu();
+                    handleApproveGymOwners();
                     break;
                 case 4:
-                    System.out.println("Approve Gym Centers feature - Coming soon!");
-                    break;
-                case 5:
-                    viewAllGymCenters();
-                    break;
-                case 6:
                     loggedIn = false;
                     System.out.println("✓ Logged out successfully!");
                     break;
@@ -320,124 +224,116 @@ public class DAOClientApp {
             }
         }
     }
-    
-    /**
-     * Update profile
-     */
-    private static void updateProfile() {
-        System.out.println("\n--- Update Profile ---");
-        
-        System.out.print("Enter new name (or press Enter to skip): ");
-        String name = scanner.nextLine();
-        if (!name.isEmpty()) {
-            currentUser.setName(name);
-        }
-        
-        System.out.print("Enter new address (or press Enter to skip): ");
-        String address = scanner.nextLine();
-        if (!address.isEmpty()) {
-            currentUser.setAddress(address);
-        }
-        
-        boolean result = userDAO.updateUser(currentUser);
-        
-        if (result) {
-            System.out.println("✓ Profile updated successfully!");
-        } else {
-            System.out.println("✗ Failed to update profile!");
+
+    // ================= HELPER METHODS =================
+
+    private static void registerUser() {
+        System.out.println("\n========== USER REGISTRATION ==========");
+        System.out.print("Enter Name: "); String name = scanner.nextLine();
+        System.out.print("Enter Email: "); String email = scanner.nextLine();
+        System.out.print("Enter Password: "); String password = scanner.nextLine();
+        System.out.print("Enter Address: "); String address = scanner.nextLine();
+
+        System.out.println("1. Customer | 2. Gym Owner");
+        int roleChoice = scanner.nextInt(); scanner.nextLine();
+        Role role = (roleChoice == 2) ? Role.GYM_OWNER : Role.CUSTOMER;
+
+        GymUser newUser = userService.register(name, email, password, address, role);
+        if (newUser != null) {
+            System.out.println("✓ Registration successful! User ID: " + newUser.getUserId());
         }
     }
-    
-    /**
-     * Approve gym owner menu
-     */
-    private static void approveGymOwnerMenu() {
-        System.out.println("\n--- Pending Gym Owner Approvals ---");
-        var owners = ownerDAO.getPendingGymOwners();
-        
-        if (owners.isEmpty()) {
-            System.out.println("No pending approvals!");
+
+    // --- CUSTOMER HELPERS ---
+
+    private static void handleViewGyms() {
+        System.out.println("View All Gyms in a city");
+
+        List<GymCenter> gyms;
+
+        System.out.print("Enter City: ");
+        String city = scanner.nextLine();
+        gyms = customerService.viewGymsByCity(city);
+
+        if (gyms.isEmpty()) {
+            System.out.println("No gyms found.");
+        } else {
+            System.out.printf("%-10s %-20s %-15s%n", "ID", "Name", "City");
+            System.out.println("---------------------------------------------");
+            for (GymCenter g : gyms) {
+                System.out.printf("%-10s %-20s %-15s%n", g.getCenterId(), g.getCenterLocn(), g.getCenterCity());
+            }
+        }
+    }
+
+    private static void handleBooking() {
+        System.out.println("\n--- Book a Slot ---");
+        System.out.print("Enter Gym ID: "); String gymId = scanner.nextLine();
+        System.out.print("Enter Slot ID: "); String slotId = scanner.nextLine();
+        System.out.print("Enter Date (YYYY-MM-DD): "); String date = scanner.nextLine();
+
+        boolean success = customerService.bookSlot(currentUser.getUserId(), slotId, gymId, date);
+        // Success/Failure message is handled inside Service via print statements as per previous code
+    }
+
+    private static void handleCancellation() {
+        System.out.println("\n--- Cancel Booking ---");
+        System.out.print("Enter Booking ID: "); String bId = scanner.nextLine();
+        System.out.print("Enter Slot ID (to free up seat): "); String sId = scanner.nextLine();
+
+        customerService.cancelBooking(bId, sId);
+    }
+
+    // --- GYM OWNER HELPERS ---
+
+    private static void handleAddGymCenter() {
+        System.out.println("\n--- Add Gym Center ---");
+        System.out.print("Enter Gym ID: "); String gymId = scanner.nextLine();
+        System.out.print("Enter City: "); String city = scanner.nextLine();
+        System.out.print("Enter Location/Address: "); String loc = scanner.nextLine();
+
+        // Assuming Owner ID is same as User ID for now, or derived
+        String ownerId = currentUser.getUserId();
+
+        gymOwnerService.addGymCenter(gymId, ownerId, city, loc);
+    }
+
+    // --- ADMIN HELPERS ---
+
+    private static void handleApproveGymCenters() {
+        List<GymCenter> pending = adminService.viewPendingGymCenters();
+        if(pending.isEmpty()) {
+            System.out.println("No pending gym centers.");
             return;
         }
-        
-        System.out.println("Total Pending: " + owners.size());
-        System.out.print("\nEnter Owner ID to approve (or 0 to cancel): ");
-        String ownerId = scanner.nextLine();
-        
-        if (!ownerId.equals("0")) {
-            boolean result = ownerDAO.approveGymOwner(ownerId);
-            
-            if (result) {
-                System.out.println("✓ Gym Owner approved successfully!");
-            } else {
-                System.out.println("✗ Failed to approve gym owner!");
-            }
+        for(GymCenter c : pending) {
+            System.out.println("Pending ID: " + c.getCenterId() + " | City: " + c.getCenterCity());
         }
+        System.out.print("Enter Gym ID to Approve: ");
+        String id = scanner.nextLine();
+        adminService.approveGymCenter(id);
     }
-    
-    
-    /**
-     * View all users (Admin only)
-     */
-    private static void viewAllUsers() {
-        System.out.println("\n--- All Users ---");
-        List<GymUser> users = userDAO.getAllUsers();
-        
-        if (users.isEmpty()) {
-            System.out.println("No users found!");
-        } else {
-            System.out.println("Total Users: " + users.size());
-            for (GymUser user : users) {
-                System.out.println("ID: " + user.getUserId() + " | Name: " + user.getName() + 
-                                 " | Email: " + user.getEmail() + " | Role: " + user.getRole());
-            }
+
+    private static void handleApproveGymOwners() {
+        // Similar logic for Owner Approval
+        var pending = adminService.viewPendingGymOwners();
+        if(pending.isEmpty()){
+            System.out.println("No pending owners.");
+            return;
         }
+        // ... Display logic ...
+        System.out.print("Enter Owner ID to Approve: ");
+        String id = scanner.nextLine();
+        adminService.approveGymOwner(id);
     }
-    
-    /**
-     * View system statistics
-     */
+
     private static void viewSystemStatistics() {
-        System.out.println("\n========== SYSTEM STATISTICS ==========");
-        Map<String, Integer> stats = adminDAO.getSystemStatistics();
-        
-        System.out.println("Total Users: " + stats.getOrDefault("total_users", 0));
-        System.out.println("Total Gym Owners: " + stats.getOrDefault("total_gym_owners", 0));
-        System.out.println("Total Customers: " + stats.getOrDefault("total_customers", 0));
-        System.out.println("Total Bookings: " + stats.getOrDefault("total_bookings", 0));
-        System.out.println("Total Gym Centers: " + stats.getOrDefault("total_gym_centers", 0));
-        System.out.println("========================================");
+        Map<String, Integer> stats = adminService.getSystemStatistics();
+        System.out.println("\n--- System Stats ---");
+        stats.forEach((k, v) -> System.out.println(k + ": " + v));
     }
-    
-    /**
-     * View all gym centers
-     */
-    private static void viewAllGymCenters() {
-        System.out.println("\n--- All Gym Centers ---");
-        var centers = adminDAO.getAllGymCenters();
-        
-        if (centers.isEmpty()) {
-            System.out.println("No gym centers found!");
-        } else {
-            System.out.println("Total Gym Centers: " + centers.size());
-            for (var center : centers) {
-                System.out.println("\nID: " + center.getCenterId());
-                System.out.println("City: " + center.getCenterCity());
-                System.out.println("Location: " + center.getCenterLocn());
-                System.out.println("-------------------");
-            }
-        }
-    }
-    
-    /**
-     * Helper method to display user information
-     */
+
     private static void displayUser(GymUser user) {
-        System.out.println("\n--- User Details ---");
-        System.out.println("User ID: " + user.getUserId());
-        System.out.println("Name: " + user.getName());
-        System.out.println("Email: " + user.getEmail());
-        System.out.println("Address: " + user.getAddress());
-        System.out.println("Role: " + user.getRole());
+        System.out.println("User: " + user.getName() + " | Role: " + user.getRole());
     }
 }

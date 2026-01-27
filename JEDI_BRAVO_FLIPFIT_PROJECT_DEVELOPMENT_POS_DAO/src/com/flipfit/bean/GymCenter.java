@@ -9,7 +9,16 @@ public class GymCenter {
 	private String centerCity;
 	private String ownerId;
 	private List<GymSlot> centerSlot;
+	private boolean isApproved;
 
+
+	public boolean isApproved() {
+		return isApproved;
+	}
+
+	public void setApproved(boolean approved) {
+		isApproved = approved;
+	}
 	public String getCenterId() {
 		return centerId;
 	}

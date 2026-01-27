@@ -1,5 +1,6 @@
 package com.flipfit.business;
 
+import com.flipfit.bean.GymCenter;
 import com.flipfit.bean.GymUser;
 import java.util.Date;
 import java.util.List;
@@ -53,4 +54,18 @@ public interface CustomerService {
      * @return Number of bookings
      */
     int getBookingCount(String customerId);
+    List<GymCenter> viewGymsByCity(String city);
+
+    /**
+     * Handles booking logic:
+     * 1. Auto-removes old bookings (Use Case 3)
+     * 2. Checks capacity (Use Case 4)
+     * 3. Suggests nearest slot if full (Use Case 2)
+     */
+    boolean bookSlot(String userId, String slotId, String gymId, String date);
+
+    /**
+     * Cancel a booking
+     */
+    boolean cancelBooking(String bookingId, String slotId);
 }
