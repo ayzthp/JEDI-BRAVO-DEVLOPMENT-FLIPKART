@@ -1,7 +1,7 @@
-# Eclipse
-.classpath
-.project
-.settings/
+# Eclipse (commented out to allow STS project files)
+# .classpath
+# .project
+# .settings/
 .buildpath
 
 # IDEA
