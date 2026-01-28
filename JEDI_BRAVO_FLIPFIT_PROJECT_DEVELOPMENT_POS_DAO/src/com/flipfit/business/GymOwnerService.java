@@ -53,4 +53,5 @@ public interface GymOwnerService {
      * @return true if successful, false otherwise
      */
     boolean updateGymOwner(String ownerId, String panCard, String aadharCard, String gstNumber);
+    boolean addGymCenter(String gymId, String ownerId, String city, String address);
 }

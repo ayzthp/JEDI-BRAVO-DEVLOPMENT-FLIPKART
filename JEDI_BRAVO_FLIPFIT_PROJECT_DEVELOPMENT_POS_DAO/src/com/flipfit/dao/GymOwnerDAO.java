@@ -1,5 +1,6 @@
 package com.flipfit.dao;
 
+import com.flipfit.bean.GymCenter;
 import com.flipfit.bean.GymOwner;
 import java.util.List;
 
@@ -69,4 +70,6 @@ public interface GymOwnerDAO {
      * @return true if deletion is successful, false otherwise
      */
     boolean deleteGymOwner(String ownerId);
+
+    boolean addGymCenter(GymCenter gymCenter);
 }

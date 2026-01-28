@@ -1,7 +1,9 @@
 package com.flipfit.dao.impl;
 
+import com.flipfit.bean.GymCenter;
 import com.flipfit.bean.GymOwner;
 import com.flipfit.bean.GymUser;
+import com.flipfit.constant.SQLConstants;
 import com.flipfit.dao.GymOwnerDAO;
 import com.flipfit.dao.GymUserDAO;
 import com.flipfit.constants.DatabaseConstants;
@@ -205,5 +207,27 @@ public class GymOwnerDAOImpl implements GymOwnerDAO {
         owner.setUser(user);
         
         return owner;
+    }
+
+    @Override
+    public boolean addGymCenter(GymCenter gymCenter) {
+        // SQLConstants.INSERT_GYM_CENTER = "INSERT INTO GymCenter (gym_id, owner_id, gym_address, city, is_approved) VALUES (?, ?, ?, ?, FALSE)"
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(SQLConstants.INSERT_GYM_CENTER)) {
+
+            pstmt.setString(1, gymCenter.getCenterId());
+            pstmt.setString(2, gymCenter.getOwnerId());
+            pstmt.setString(3, gymCenter.getCenterLocn());
+            pstmt.setString(4, gymCenter.getCenterCity());
+            // is_approved is handled by SQL default or 'FALSE' in query
+
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

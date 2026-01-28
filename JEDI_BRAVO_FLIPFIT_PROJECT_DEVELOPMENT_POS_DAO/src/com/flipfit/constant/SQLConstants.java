@@ -18,7 +18,24 @@ public class SQLConstants {
     }
     
     // ========== USER QUERIES ==========
-    
+    public static final String FETCH_GYM_CENTERS_BY_CITY =
+            "SELECT * FROM GymCenter WHERE city = ?";
+
+    // [CORRECTED] Assumes table 'GymSlot' has columns: slot_id, start_time, available_seats
+    public static final String GET_SLOT_DETAILS =
+            "SELECT * FROM GymSlot WHERE slot_id = ?";
+
+    public static final String DECREMENT_SLOT_SEATS =
+            "UPDATE GymSlot SET available_seats = available_seats - 1 WHERE slot_id = ? AND available_seats > 0";
+
+    public static final String INCREMENT_SLOT_SEATS =
+            "UPDATE GymSlot SET available_seats = available_seats + 1 WHERE slot_id = ?";
+
+
+    // [CORRECTED] Added 'gym_id' column assumption for GymSlot table
+    public static final String GET_ALL_SLOTS_FOR_GYM =
+            "SELECT * FROM GymSlot WHERE gym_id = ? ORDER BY start_time";
+
     /** The constant for inserting a new user. */
     public static final String INSERT_USER = 
         "INSERT INTO User (user_id, name, email, password, address, phone_number, role_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -160,4 +177,22 @@ public class SQLConstants {
     /** The constant for getting total gym centers count. */
     public static final String COUNT_TOTAL_GYM_CENTERS = 
         "SELECT COUNT(*) as count FROM GymCenter";
+
+    public static final String INSERT_GYM_CENTER =
+            "INSERT INTO GymCenter (gym_id, owner_id, gym_address, city, is_approved) VALUES (?, ?, ?, ?, FALSE)";
+
+    // [Optional] If you need to check if ID exists
+    public static final String CHECK_GYM_EXISTS = "SELECT COUNT(*) FROM GymCenter WHERE gym_id = ?";
+    public static final String INSERT_BOOKING =
+            "INSERT INTO Booking (booking_id, user_id, slot_id, date, booking_status) VALUES (?, ?, ?, ?, ?)";
+
+    // 2. CONFLICT CHECK: Changed 'b.status' to 'b.booking_status'
+    public static final String FIND_CONFLICTING_BOOKING =
+            "SELECT b.booking_id FROM Booking b " +
+                    "JOIN GymSlot s ON b.slot_id = s.slot_id " +
+                    "WHERE b.user_id = ? AND b.date = ? AND b.booking_status = 'CONFIRMED' AND s.start_time = ?";
+
+    // 3. CANCEL/UPDATE: Changed 'status' to 'booking_status'
+    public static final String UPDATE_BOOKING_STATUS =
+            "UPDATE Booking SET booking_status = ? WHERE booking_id = ?";
 }
