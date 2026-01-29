@@ -7,6 +7,7 @@ import com.flipfit.business.UserService;
 import com.flipfit.business.impl.CustomerServiceImpl;
 import com.flipfit.business.impl.GymOwnerServiceImpl;
 import com.flipfit.business.impl.UserServiceImpl;
+import com.flipfit.enums.Role;
 import com.flipfit.exception.InvalidCredentialsException;
 import com.flipfit.exception.RegistrationFailedException;
 
@@ -48,7 +49,7 @@ public class AuthController {
      * Login endpoint for all user types.
      * Returns user details with current login timestamp using Java Date/Time API.
      * 
-     * @param credentials Map containing email and password
+     * @param credentials Map containing email, password, and role
      * @return Response with user details and login timestamp
      */
     @POST
@@ -57,8 +58,10 @@ public class AuthController {
         try {
             String email = credentials.get("email");
             String password = credentials.get("password");
+            String roleStr = credentials.getOrDefault("role", "CUSTOMER");
+            Role role = Role.valueOf(roleStr.toUpperCase());
             
-            GymUser user = userService.authenticateUser(email, password);
+            GymUser user = userService.login(email, password, role);
             
             // Use Java Date/Time API to get current timestamp
             LocalDateTime loginTime = LocalDateTime.now();
@@ -68,19 +71,21 @@ public class AuthController {
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Login successful");
             response.put("userId", user.getUserId());
-            response.put("username", user.getUserName());
+            response.put("username", user.getName());
             response.put("email", user.getEmail());
             response.put("role", user.getRole().toString());
-            response.put("phoneNumber", user.getPhoneNumber());
+            response.put("address", user.getAddress());
             response.put("loginTime", formattedLoginTime);
-            response.put("welcomeMessage", "Welcome " + user.getUserName() + "!");
+            response.put("welcomeMessage", "Welcome " + user.getName() + "!");
+            
+            if (user == null) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Invalid credentials");
+                return Response.status(Response.Status.UNAUTHORIZED).entity(error).build();
+            }
             
             return Response.ok(response).build();
             
-        } catch (InvalidCredentialsException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return Response.status(Response.Status.UNAUTHORIZED).entity(error).build();
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", "Login failed: " + e.getMessage());
@@ -98,17 +103,26 @@ public class AuthController {
     @Path("/register/customer")
     public Response registerCustomer(Map<String, String> registrationData) {
         try {
-            String userId = registrationData.get("userId");
-            String userName = registrationData.get("userName");
+            String name = registrationData.get("name");
             String email = registrationData.get("email");
             String password = registrationData.get("password");
-            String phoneNumber = registrationData.get("phoneNumber");
+            String address = registrationData.get("address");
             
-            customerService.registerCustomer(userId, userName, email, password, phoneNumber);
+            // First register as user
+            GymUser user = userService.register(name, email, password, address, Role.CUSTOMER);
+            
+            if (user == null) {
+                throw new RegistrationFailedException("User registration failed");
+            }
+            
+            // Then register as customer (additional customer-specific data can be added later)
+            // For now, just using basic customer registration
+            String customerId = customerService.registerCustomer(user.getUserId(), null, "General Fitness");
             
             Map<String, String> response = new HashMap<>();
             response.put("message", "Customer registration successful");
-            response.put("userId", userId);
+            response.put("userId", user.getUserId());
+            response.put("customerId", customerId);
             
             return Response.status(Response.Status.CREATED).entity(response).build();
             
@@ -133,21 +147,28 @@ public class AuthController {
     @Path("/register/owner")
     public Response registerGymOwner(Map<String, String> registrationData) {
         try {
-            String userId = registrationData.get("userId");
-            String userName = registrationData.get("userName");
+            String name = registrationData.get("name");
             String email = registrationData.get("email");
             String password = registrationData.get("password");
-            String phoneNumber = registrationData.get("phoneNumber");
+            String address = registrationData.get("address");
             String panCard = registrationData.get("panCard");
             String aadharCard = registrationData.get("aadharCard");
             String gstNumber = registrationData.get("gstNumber");
             
-            gymOwnerService.registerGymOwner(userId, userName, email, password, phoneNumber, 
-                                            panCard, aadharCard, gstNumber);
+            // First register as user
+            GymUser user = userService.register(name, email, password, address, Role.GYM_OWNER);
+            
+            if (user == null) {
+                throw new RegistrationFailedException("User registration failed");
+            }
+            
+            // Then register as gym owner with business details
+            String ownerId = gymOwnerService.registerGymOwner(user.getUserId(), panCard, aadharCard, gstNumber);
             
             Map<String, String> response = new HashMap<>();
             response.put("message", "Gym owner registration successful. Pending admin approval.");
-            response.put("userId", userId);
+            response.put("userId", user.getUserId());
+            response.put("ownerId", ownerId);
             
             return Response.status(Response.Status.CREATED).entity(response).build();
             

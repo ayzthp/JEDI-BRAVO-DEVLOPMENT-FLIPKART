@@ -38,15 +38,16 @@ public class GymCustomerController {
     }
     
     /**
-     * Get all available gym slots.
+     * Get all available gym slots for a specific gym center.
      * 
+     * @param gymId The gym center ID
      * @return Response with list of available slots
      */
     @GET
-    @Path("/slots/available")
-    public Response getAvailableSlots() {
+    @Path("/slots/available/{gymId}")
+    public Response getAvailableSlots(@PathParam("gymId") String gymId) {
         try {
-            List<GymSlot> slots = bookingService.viewAvailableSlots();
+            List<GymSlot> slots = bookingService.viewAvailableSlots(gymId);
             return Response.ok(slots).build();
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
@@ -107,11 +108,12 @@ public class GymCustomerController {
             String slotId = bookingData.get("slotId");
             LocalDate bookingDate = LocalDate.parse(bookingData.get("bookingDate"));
             
-            boolean success = bookingService.bookSlot(customerId, slotId, bookingDate);
+            Booking booking = bookingService.bookSlot(customerId, slotId, bookingDate);
             
-            if (success) {
+            if (booking != null) {
                 Map<String, String> response = new HashMap<>();
                 response.put("message", "Slot booked successfully");
+                response.put("bookingId", booking.getBookingId());
                 response.put("customerId", customerId);
                 response.put("slotId", slotId);
                 response.put("bookingDate", bookingDate.toString());
@@ -143,7 +145,7 @@ public class GymCustomerController {
     @Path("/bookings/{customerId}")
     public Response viewBookings(@PathParam("customerId") String customerId) {
         try {
-            List<Booking> bookings = bookingService.viewBookings(customerId);
+            List<Booking> bookings = bookingService.viewMyBookings(customerId);
             return Response.ok(bookings).build();
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();

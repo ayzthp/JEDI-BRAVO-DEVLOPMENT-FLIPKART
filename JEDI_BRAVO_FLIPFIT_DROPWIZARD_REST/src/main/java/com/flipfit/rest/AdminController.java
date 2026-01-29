@@ -2,9 +2,10 @@ package com.flipfit.rest;
 
 import com.flipfit.bean.GymCenter;
 import com.flipfit.bean.GymOwner;
-import com.flipfit.bean.GymUser;
 import com.flipfit.business.AdminService;
+import com.flipfit.business.GymOwnerService;
 import com.flipfit.business.impl.AdminServiceImpl;
+import com.flipfit.business.impl.GymOwnerServiceImpl;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -39,7 +40,6 @@ public class AdminController {
     
     /**
      * Get all pending gym owner approval requests.
-     * Uses Stream API to filter not approved gym owners.
      * 
      * @return Response with list of pending gym owners
      */
@@ -47,13 +47,7 @@ public class AdminController {
     @Path("/owners/pending")
     public Response getPendingGymOwners() {
         try {
-            List<GymOwner> allOwners = adminService.viewAllGymOwners();
-            
-            // Using Stream API with lambda expressions to filter not approved owners
-            List<GymOwner> pendingOwners = allOwners.stream()
-                .filter(owner -> !owner.isApproved())
-                .collect(Collectors.toList());
-            
+            List<GymOwner> pendingOwners = adminService.viewPendingGymOwners();
             return Response.ok(pendingOwners).build();
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
@@ -63,7 +57,7 @@ public class AdminController {
     }
     
     /**
-     * Get all approved gym owners.
+     * Get all gym owners (approved and pending).
      * Uses Stream API to filter approved gym owners.
      * 
      * @return Response with list of approved gym owners
@@ -72,7 +66,8 @@ public class AdminController {
     @Path("/owners/approved")
     public Response getApprovedGymOwners() {
         try {
-            List<GymOwner> allOwners = adminService.viewAllGymOwners();
+            GymOwnerService ownerService = new GymOwnerServiceImpl();
+            List<GymOwner> allOwners = ownerService.getAllGymOwners();
             
             // Using Stream API with lambda expressions to filter approved owners
             List<GymOwner> approvedOwners = allOwners.stream()
@@ -89,7 +84,6 @@ public class AdminController {
     
     /**
      * Get all pending gym center approval requests.
-     * Uses Stream API to filter not approved gym centers.
      * 
      * @return Response with list of pending gym centers
      */
@@ -97,13 +91,7 @@ public class AdminController {
     @Path("/centers/pending")
     public Response getPendingGymCenters() {
         try {
-            List<GymCenter> allCenters = adminService.viewAllGymCenters();
-            
-            // Using Stream API with lambda expressions to filter not approved centers
-            List<GymCenter> pendingCenters = allCenters.stream()
-                .filter(center -> !center.isApproved())
-                .collect(Collectors.toList());
-            
+            List<GymCenter> pendingCenters = adminService.viewPendingGymCenters();
             return Response.ok(pendingCenters).build();
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
@@ -201,13 +189,15 @@ public class AdminController {
      * Reject a gym owner.
      * 
      * @param ownerId The owner ID to reject
+     * @param rejectionData Map containing remarks
      * @return Response with rejection status
      */
-    @DELETE
+    @POST
     @Path("/owner/reject/{ownerId}")
-    public Response rejectGymOwner(@PathParam("ownerId") String ownerId) {
+    public Response rejectGymOwner(@PathParam("ownerId") String ownerId, Map<String, String> rejectionData) {
         try {
-            boolean success = adminService.rejectGymOwner(ownerId);
+            String remarks = rejectionData.getOrDefault("remarks", "Not specified");
+            boolean success = adminService.rejectGymOwner(ownerId, remarks);
             
             if (success) {
                 Map<String, String> response = new HashMap<>();
@@ -231,13 +221,15 @@ public class AdminController {
      * Reject a gym center.
      * 
      * @param gymId The gym center ID to reject
+     * @param rejectionData Map containing remarks
      * @return Response with rejection status
      */
-    @DELETE
+    @POST
     @Path("/center/reject/{gymId}")
-    public Response rejectGymCenter(@PathParam("gymId") String gymId) {
+    public Response rejectGymCenter(@PathParam("gymId") String gymId, Map<String, String> rejectionData) {
         try {
-            boolean success = adminService.rejectGymCenter(gymId);
+            String remarks = rejectionData.getOrDefault("remarks", "Not specified");
+            boolean success = adminService.rejectGymCenter(gymId, remarks);
             
             if (success) {
                 Map<String, String> response = new HashMap<>();
@@ -258,19 +250,19 @@ public class AdminController {
     }
     
     /**
-     * Get all users in the system.
+     * Get system statistics.
      * 
-     * @return Response with list of all users
+     * @return Response with system statistics
      */
     @GET
-    @Path("/users")
-    public Response getAllUsers() {
+    @Path("/statistics")
+    public Response getStatistics() {
         try {
-            List<GymUser> users = adminService.viewAllUsers();
-            return Response.ok(users).build();
+            Map<String, Integer> stats = adminService.getSystemStatistics();
+            return Response.ok(stats).build();
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Failed to fetch users: " + e.getMessage());
+            error.put("error", "Failed to fetch statistics: " + e.getMessage());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(error).build();
         }
     }
@@ -284,7 +276,8 @@ public class AdminController {
     @Path("/owners")
     public Response getAllGymOwners() {
         try {
-            List<GymOwner> owners = adminService.viewAllGymOwners();
+            GymOwnerService ownerService = new GymOwnerServiceImpl();
+            List<GymOwner> owners = ownerService.getAllGymOwners();
             return Response.ok(owners).build();
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();

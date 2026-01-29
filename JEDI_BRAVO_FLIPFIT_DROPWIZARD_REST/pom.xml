@@ -143,6 +143,7 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
                     <source>17</source>
+                    <skip>true</skip>
                 </configuration>
                 <executions>
                     <execution>
