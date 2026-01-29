@@ -62,6 +62,23 @@
       </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>console-client</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <classifier>client</classifier>
+              <archive>
+                <manifest>
+                  <mainClass>com.flipfit.client.FlipFitConsoleClient</mainClass>
+                </manifest>
+              </archive>
+            </configuration>
+          </execution>
+        </executions>
         <configuration>
           <archive>
             <manifest>
